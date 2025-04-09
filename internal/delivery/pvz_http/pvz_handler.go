@@ -3,32 +3,13 @@ package pvz_http
 import (
 	"encoding/json"
 	"net/http"
+	"pvz/internal/domain/model"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type PVZ struct {
-	ID               string    `json:"id"`
-	RegistrationDate time.Time `json:"registrationDate"`
-	City             string    `json:"city"`
-}
-
-type Reception struct {
-	ID       string    `json:"id"`
-	DateTime time.Time `json:"dateTime"`
-	PVZID    string    `json:"pvzId"`
-	Status   string    `json:"status"`
-}
-
-type Product struct {
-	ID          string    `json:"id"`
-	DateTime    time.Time `json:"dateTime"`
-	Type        string    `json:"type"`
-	ReceptionID string    `json:"receptionId"`
-}
-
-var pvzStore []PVZ
+var pvzStore []model.PVZ
 
 func PVZHandler() http.Handler {
 	mux := http.NewServeMux()
@@ -47,6 +28,13 @@ func handlePVZ(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func checkCity(city string) bool {
+	if city == "Москва" || city == "Санкт-Петербург" || city == "Казань" {
+		return true
+	}
+	return false
+}
+
 func createPVZ(w http.ResponseWriter, r *http.Request) {
 	role, err := GetUserRole(r.Context())
 	if err != nil || role != "moderator" {
@@ -54,8 +42,8 @@ func createPVZ(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req PVZ
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.City == "" {
+	var req model.PVZ
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || !checkCity(req.City) {
 		http.Error(w, `{"message":"неверный запрос"}`, http.StatusBadRequest)
 		return
 	}
