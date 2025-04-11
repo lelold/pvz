@@ -11,6 +11,12 @@ import (
 
 var pvzStore []model.PVZ
 
+var allowedCities = map[string]bool{
+	"Москва":          true,
+	"Санкт-Петербург": true,
+	"Казань":          true,
+}
+
 func PVZHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/pvz", handlePVZ)
@@ -28,13 +34,6 @@ func handlePVZ(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func checkCity(city string) bool {
-	if city == "Москва" || city == "Санкт-Петербург" || city == "Казань" {
-		return true
-	}
-	return false
-}
-
 func createPVZ(w http.ResponseWriter, r *http.Request) {
 	role, err := GetUserRole(r.Context())
 	if err != nil || role != "moderator" {
@@ -43,13 +42,13 @@ func createPVZ(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req model.PVZ
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || !checkCity(req.City) {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || !allowedCities[req.City] {
 		http.Error(w, `{"message":"неверный запрос"}`, http.StatusBadRequest)
 		return
 	}
 
 	req.RegistrationDate = time.Now()
-	req.ID = uuid.New().String()
+	req.ID = uuid.New()
 	pvzStore = append(pvzStore, req)
 
 	w.Header().Set("Content-Type", "application/json")

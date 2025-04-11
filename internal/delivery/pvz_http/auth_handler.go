@@ -50,7 +50,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"id":    user.ID,
+		"id":    user.ID.String(),
 		"email": user.Email,
 		"role":  user.Role,
 	})
@@ -69,7 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := generateToken(user.ID, user.Role)
+	token, err := generateToken(user.ID.String(), user.Role)
 	if err != nil {
 		http.Error(w, `{"message":"token error"}`, http.StatusInternalServerError)
 		return

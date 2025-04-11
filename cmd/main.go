@@ -4,13 +4,18 @@ import (
 	"log"
 	"net/http"
 
+	"pvz/internal/config"
 	"pvz/internal/delivery/pvz_http"
 	"pvz/internal/domain/service"
-	repository "pvz/internal/repository/pg"
+	"pvz/internal/postgres"
+	repository "pvz/internal/repository"
 )
 
 func main() {
-	userRepo := repository.NewUserRepo()
+	cfg := config.LoadConfig()
+	db := postgres.InitDB(&cfg)
+	postgres.Migrate(db)
+	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	authHandler := &pvz_http.AuthHandler{UserService: userService}
 
