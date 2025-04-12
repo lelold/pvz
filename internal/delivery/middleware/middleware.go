@@ -1,4 +1,4 @@
-package pvz_http
+package middleware
 
 import (
 	"context"
@@ -23,28 +23,24 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, `{"message":"missing or invalid token"}`, http.StatusUnauthorized)
 			return
 		}
-
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
-
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
+
 		if err != nil || !token.Valid {
 			http.Error(w, `{"message":"unauthorized"}`, http.StatusUnauthorized)
 			return
 		}
-
 		userID, ok1 := claims["user_id"].(string)
 		role, ok2 := claims["role"].(string)
 		if !ok1 || !ok2 {
 			http.Error(w, `{"message":"invalid token payload"}`, http.StatusUnauthorized)
 			return
 		}
-
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
 		ctx = context.WithValue(ctx, roleKey, role)
-
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

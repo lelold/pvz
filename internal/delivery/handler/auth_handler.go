@@ -1,9 +1,10 @@
-package pvz_http
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
 
+	"pvz/internal/delivery/middleware"
 	"pvz/internal/domain/model"
 	"pvz/internal/domain/service"
 
@@ -26,7 +27,7 @@ func DummyLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenString, err := generateToken(uuid.NewString(), req.Role)
+	tokenString, err := middleware.GenerateToken(uuid.NewString(), req.Role)
 	if err != nil {
 		http.Error(w, `{"message":"failed to generate token"}`, http.StatusInternalServerError)
 		return
@@ -69,7 +70,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := generateToken(user.ID.String(), user.Role)
+	token, err := middleware.GenerateToken(user.ID.String(), user.Role)
 	if err != nil {
 		http.Error(w, `{"message":"token error"}`, http.StatusInternalServerError)
 		return

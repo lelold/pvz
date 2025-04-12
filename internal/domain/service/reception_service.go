@@ -12,6 +12,7 @@ import (
 
 type ReceptionService interface {
 	StartReception(pvzID string) (*model.Reception, error)
+	CloseLastReception(pvzID string) (*model.Reception, error)
 }
 
 type receptionService struct {
@@ -40,6 +41,19 @@ func (s *receptionService) StartReception(pvzID string) (*model.Reception, error
 
 	err = s.Repo.CreateReception(reception)
 	if err != nil {
+		return nil, err
+	}
+
+	return reception, nil
+}
+
+func (s *receptionService) CloseLastReception(pvzID string) (*model.Reception, error) {
+	reception, err := s.Repo.FindLastOpenReceptionByPVZ(pvzID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.Repo.CloseReception(reception); err != nil {
 		return nil, err
 	}
 

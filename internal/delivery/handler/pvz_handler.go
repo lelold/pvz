@@ -1,8 +1,9 @@
-package pvz_http
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
+	"pvz/internal/delivery/middleware"
 	"pvz/internal/domain/service"
 	"strconv"
 	"time"
@@ -23,7 +24,7 @@ type createPVZRequest struct {
 func (h *PVZHandler) HandlePVZ(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		role, err := GetUserRole(r.Context())
+		role, err := middleware.GetUserRole(r.Context())
 		if err != nil || role != "moderator" {
 			http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
 			return
@@ -31,7 +32,7 @@ func (h *PVZHandler) HandlePVZ(w http.ResponseWriter, r *http.Request) {
 		h.createPVZ(w, r)
 
 	case http.MethodGet:
-		role, err := GetUserRole(r.Context())
+		role, err := middleware.GetUserRole(r.Context())
 		if err != nil || role != "employee" {
 			http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
 			return

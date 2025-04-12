@@ -1,11 +1,15 @@
-package pvz_http
+package handler
 
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"pvz/internal/delivery/middleware"
 	"pvz/internal/domain/model"
 	"pvz/internal/domain/service"
+
+	"github.com/gorilla/mux"
 )
 
 type ReceptionHandler struct {
@@ -17,7 +21,7 @@ func NewReceptionHandler(s service.ReceptionService) *ReceptionHandler {
 }
 
 func (h *ReceptionHandler) StartReception(w http.ResponseWriter, r *http.Request) {
-	role, err := GetUserRole(r.Context())
+	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "employee" {
 		http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
 		return
@@ -30,6 +34,7 @@ func (h *ReceptionHandler) StartReception(w http.ResponseWriter, r *http.Request
 	}
 
 	reception, err := h.Service.StartReception(req.PVZID.String())
+	fmt.Println(err)
 	if err != nil {
 		if err == errors.New("предыдущая приёмка ещё не закрыта") {
 			http.Error(w, `{"message":"предыдущая приёмка ещё не закрыта"}`, http.StatusConflict)
@@ -41,5 +46,28 @@ func (h *ReceptionHandler) StartReception(w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(reception)
+}
+
+func (h *ReceptionHandler) CloseLastReception(w http.ResponseWriter, r *http.Request) {
+	role, err := middleware.GetUserRole(r.Context())
+	if err != nil || role != "employee" {
+		http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
+		return
+	}
+	vars := mux.Vars(r)
+	pvzID := vars["pvzId"]
+	if pvzID == "" {
+		http.Error(w, `{"message":"неверный запрос: отсутствует pvzId"}`, http.StatusBadRequest)
+		return
+	}
+
+	reception, err := h.Service.CloseLastReception(pvzID)
+	if err != nil {
+		http.Error(w, `{"message":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(reception)
 }

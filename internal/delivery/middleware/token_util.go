@@ -1,4 +1,4 @@
-package pvz_http
+package middleware
 
 import (
 	"time"
@@ -8,7 +8,7 @@ import (
 
 var jwtKey = []byte("secret")
 
-func generateToken(userID, role string) (string, error) {
+func GenerateToken(userID, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
