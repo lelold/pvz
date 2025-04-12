@@ -20,7 +20,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		if !strings.HasPrefix(auth, "Bearer ") {
-			http.Error(w, `{"message":"missing or invalid token"}`, http.StatusUnauthorized)
+			http.Error(w, `{"message":"отсутствует или неверный токен"}`, http.StatusUnauthorized)
 			return
 		}
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
@@ -30,13 +30,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, `{"message":"unauthorized"}`, http.StatusUnauthorized)
+			http.Error(w, `{"message":"неавторизован"}`, http.StatusUnauthorized)
 			return
 		}
 		userID, ok1 := claims["user_id"].(string)
 		role, ok2 := claims["role"].(string)
 		if !ok1 || !ok2 {
-			http.Error(w, `{"message":"invalid token payload"}`, http.StatusUnauthorized)
+			http.Error(w, `{"message":"неверный токен"}`, http.StatusUnauthorized)
 			return
 		}
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
@@ -49,7 +49,7 @@ func RequireRole(required string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		role, err := GetUserRole(r.Context())
 		if err != nil || role != required {
-			http.Error(w, `{"message":"forbidden"}`, http.StatusForbidden)
+			http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
 			return
 		}
 		next(w, r)
@@ -60,7 +60,7 @@ func GetUserID(ctx context.Context) (string, error) {
 	val := ctx.Value(userIDKey)
 	userID, ok := val.(string)
 	if !ok {
-		return "", errors.New("user_id not found")
+		return "", errors.New("user_id не найден")
 	}
 	return userID, nil
 }
@@ -69,7 +69,7 @@ func GetUserRole(ctx context.Context) (string, error) {
 	val := ctx.Value(roleKey)
 	role, ok := val.(string)
 	if !ok {
-		return "", errors.New("role not found")
+		return "", errors.New("role не найдена")
 	}
 	return role, nil
 }

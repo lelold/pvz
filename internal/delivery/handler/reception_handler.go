@@ -2,8 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"pvz/internal/delivery/middleware"
 	"pvz/internal/domain/model"
@@ -34,13 +32,8 @@ func (h *ReceptionHandler) StartReception(w http.ResponseWriter, r *http.Request
 	}
 
 	reception, err := h.Service.StartReception(req.PVZID.String())
-	fmt.Println(err)
 	if err != nil {
-		if err == errors.New("предыдущая приёмка ещё не закрыта") {
-			http.Error(w, `{"message":"предыдущая приёмка ещё не закрыта"}`, http.StatusConflict)
-		} else {
-			http.Error(w, `{"message":"ошибка сервиса"}`, http.StatusInternalServerError)
-		}
+		http.Error(w, `{"message":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 

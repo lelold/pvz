@@ -40,7 +40,7 @@ func (h *PVZHandler) HandlePVZ(w http.ResponseWriter, r *http.Request) {
 		h.getPVZList(w, r)
 
 	default:
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -91,7 +91,7 @@ func (h *PVZHandler) getPVZList(w http.ResponseWriter, r *http.Request) {
 
 	pvzList, err := h.service.GetFullPVZList(startTime, endTime, page, limit)
 	if err != nil {
-		http.Error(w, `{"message":"failed to fetch pvz list"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message":"Не удалось получить список ПВЗ"}`, http.StatusInternalServerError)
 		return
 	}
 

@@ -12,24 +12,24 @@ import (
 )
 
 type AuthHandler struct {
-	UserService *service.UserService
+	UserService service.UserService
 }
 
 func DummyLoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req model.DummyLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"message":"invalid request"}`, http.StatusBadRequest)
+		http.Error(w, `{"message":"неверный запрос"}`, http.StatusBadRequest)
 		return
 	}
 
 	if req.Role != "employee" && req.Role != "moderator" {
-		http.Error(w, `{"message":"invalid role"}`, http.StatusBadRequest)
+		http.Error(w, `{"message":"неверная роль"}`, http.StatusBadRequest)
 		return
 	}
 
 	tokenString, err := middleware.GenerateToken(uuid.NewString(), req.Role)
 	if err != nil {
-		http.Error(w, `{"message":"failed to generate token"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message":"ошибка с генерацией токена"}`, http.StatusInternalServerError)
 		return
 	}
 
@@ -40,7 +40,7 @@ func DummyLoginHandler(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req model.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"message":"invalid request"}`, http.StatusBadRequest)
+		http.Error(w, `{"message":"неверный запрос"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -60,19 +60,19 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req model.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"message":"invalid request"}`, http.StatusBadRequest)
+		http.Error(w, `{"message":"неверный запрос"}`, http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.UserService.Login(req.Email, req.Password)
 	if err != nil {
-		http.Error(w, `{"message":"unauthorized"}`, http.StatusUnauthorized)
+		http.Error(w, `{"message":"неавторизован"}`, http.StatusUnauthorized)
 		return
 	}
 
 	token, err := middleware.GenerateToken(user.ID.String(), user.Role)
 	if err != nil {
-		http.Error(w, `{"message":"token error"}`, http.StatusInternalServerError)
+		http.Error(w, `{"message":"ошибка с генерацией токена"}`, http.StatusInternalServerError)
 		return
 	}
 
