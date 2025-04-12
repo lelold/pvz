@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 	"pvz/internal/domain/model"
-	repository "pvz/internal/repository"
+	"pvz/internal/domain/repository"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"

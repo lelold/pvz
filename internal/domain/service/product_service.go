@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 	"pvz/internal/domain/model"
-	"pvz/internal/repository"
+	"pvz/internal/domain/repository"
 	"time"
 
 	"github.com/google/uuid"

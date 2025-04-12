@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"pvz/internal/domain/model"
-	"pvz/internal/repository"
+	"pvz/internal/domain/repository"
 
 	"github.com/google/uuid"
 )

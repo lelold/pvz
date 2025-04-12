@@ -7,9 +7,9 @@ import (
 	"pvz/internal/config"
 	"pvz/internal/delivery/handler"
 	"pvz/internal/delivery/middleware"
+	"pvz/internal/domain/repository"
 	"pvz/internal/domain/service"
 	"pvz/internal/postgres"
-	"pvz/internal/repository"
 
 	"github.com/gorilla/mux"
 )
