@@ -25,7 +25,7 @@ func main() {
 	receptionHandler := pvz_http.NewReceptionHandler(receptionService)
 
 	pvzRepo := repository.NewPVZRepo(db)
-	pvzService := service.NewPVZService(*pvzRepo)
+	pvzService := service.NewPVZService(pvzRepo)
 	pvzHandler := pvz_http.NewPVZHandler(pvzService)
 
 	authHandler := &pvz_http.AuthHandler{UserService: userService}

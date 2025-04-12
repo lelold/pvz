@@ -10,15 +10,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type ReceptionService struct {
+type ReceptionService interface {
+	StartReception(pvzID string) (*model.Reception, error)
+}
+
+type receptionService struct {
 	Repo repository.ReceptionRepo
 }
 
-func NewReceptionService(repo repository.ReceptionRepo) *ReceptionService {
-	return &ReceptionService{Repo: repo}
+func NewReceptionService(repo repository.ReceptionRepo) *receptionService {
+	return &receptionService{Repo: repo}
 }
 
-func (s *ReceptionService) StartReception(pvzID string) (*model.Reception, error) {
+func (s *receptionService) StartReception(pvzID string) (*model.Reception, error) {
 	open, err := s.Repo.HasOpenReception(pvzID)
 	if err != nil {
 		return nil, err

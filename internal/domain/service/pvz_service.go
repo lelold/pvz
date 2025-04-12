@@ -15,15 +15,20 @@ var allowedCities = map[string]bool{
 	"Казань":          true,
 }
 
-type PVZService struct {
-	repo repository.PVZRepo
+type PVZService interface {
+	GetFullPVZList(start, end *time.Time, page, limit int) ([]model.PVZFull, error)
+	CreatePVZ(city string) (*model.PVZ, error)
 }
 
-func NewPVZService(repo repository.PVZRepo) *PVZService {
-	return &PVZService{repo: repo}
+type pvzService struct {
+	repo repository.PVZRepository
 }
 
-func (s *PVZService) CreatePVZ(city string) (*model.PVZ, error) {
+func NewPVZService(repo repository.PVZRepository) PVZService {
+	return &pvzService{repo: repo}
+}
+
+func (s *pvzService) CreatePVZ(city string) (*model.PVZ, error) {
 	if !allowedCities[city] {
 		return nil, errors.New("город не разрешен")
 	}
@@ -40,6 +45,23 @@ func (s *PVZService) CreatePVZ(city string) (*model.PVZ, error) {
 	return pvz, nil
 }
 
-func (s *PVZService) GetAllPVZ() ([]model.PVZ, error) {
-	return s.repo.GetAll()
+func (s *pvzService) GetFullPVZList(start, end *time.Time, page, limit int) ([]model.PVZFull, error) {
+	pvzs, err := s.repo.GetFilteredPVZs(start, end, page, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var fullList []model.PVZFull
+	for _, pvz := range pvzs {
+		receptions, err := s.repo.GetReceptionsWithProducts(pvz.ID.String())
+		if err != nil {
+			return nil, err
+		}
+		fullList = append(fullList, model.PVZFull{
+			PVZ:        pvz,
+			Receptions: receptions,
+		})
+	}
+
+	return fullList, nil
 }
