@@ -21,10 +21,10 @@ type PVZService interface {
 }
 
 type pvzService struct {
-	repo repository.PVZRepository
+	repo repository.PVZRepo
 }
 
-func NewPVZService(repo repository.PVZRepository) PVZService {
+func NewPVZService(repo repository.PVZRepo) PVZService {
 	return &pvzService{repo: repo}
 }
 

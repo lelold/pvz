@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type PVZRepository interface {
+type PVZRepo interface {
 	Create(pvz *model.PVZ) error
 	GetFilteredPVZs(start, end *time.Time, page, limit int) ([]model.PVZ, error)
 	GetReceptionsWithProducts(pvzID string) ([]model.ReceptionWithProducts, error)
@@ -17,7 +17,7 @@ type pvzRepo struct {
 	db *gorm.DB
 }
 
-func NewPVZRepo(db *gorm.DB) PVZRepository {
+func NewPVZRepo(db *gorm.DB) PVZRepo {
 	return &pvzRepo{db: db}
 }
 

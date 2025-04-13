@@ -45,26 +45,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func RequireRole(required string, next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		role, err := GetUserRole(r.Context())
-		if err != nil || role != required {
-			http.Error(w, `{"message":"доступ запрещен"}`, http.StatusForbidden)
-			return
-		}
-		next(w, r)
-	}
-}
-
-func GetUserID(ctx context.Context) (string, error) {
-	val := ctx.Value(userIDKey)
-	userID, ok := val.(string)
-	if !ok {
-		return "", errors.New("user_id не найден")
-	}
-	return userID, nil
-}
-
 func GetUserRole(ctx context.Context) (string, error) {
 	val := ctx.Value(roleKey)
 	role, ok := val.(string)
@@ -72,4 +52,8 @@ func GetUserRole(ctx context.Context) (string, error) {
 		return "", errors.New("role не найдена")
 	}
 	return role, nil
+}
+
+func SetRoleContext(ctx context.Context, role string) context.Context {
+	return context.WithValue(ctx, roleKey, role)
 }
