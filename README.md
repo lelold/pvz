@@ -43,3 +43,19 @@
 ![image](https://github.com/user-attachments/assets/a8ea6bdf-78bf-43fc-baaf-aea3642dda31)
 
 Общее покрытие юзкейсов, хендлеров и репозиториев более 75%
+
+![image](https://github.com/user-attachments/assets/6caeb67f-faf9-4d9f-9968-d0ab50f76d56)
+![image](https://github.com/user-attachments/assets/8b8ab26f-63f0-4239-a201-7897f5f6fd5d)
+![image](https://github.com/user-attachments/assets/3ce6b6e6-321c-46c8-8e2a-7457fb7dd995)
+
+RPS > 1000
+SLI времени ответа < 100 мс
+SLI успешности ответа > 99.99%
+Нагрузочные тесты лежат в директории loadtests
+
+## Проблемы
+Сложнее всего было уложиться в срок, хоть и тратил всё нерабочее время на этот проект, а всё равно, вот, опоздал
+Второй проблемой было то, что я никогда не работал без ORM, а тут незадолго до дедлайна обнаружил, что надо писать без него, но вроде справился
+
+
+На этом всё, всем спасибо за внимание :)
