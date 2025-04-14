@@ -38,3 +38,6 @@
 
 ## Тесты
 Для юнит-тестов использовался пакет sqlmock, а так же утилита mockery для генерации моков, k6 для нагрузочных тестов
+![image](https://github.com/user-attachments/assets/b152ab62-fe0a-4a52-b9f7-d058119ebe3d)
+![image](https://github.com/user-attachments/assets/a8ea6bdf-78bf-43fc-baaf-aea3642dda31)
+Общее покрытие юзкейсов, хендлеров и репозиториев более 75%
