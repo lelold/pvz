@@ -73,7 +73,7 @@ func createPVZ(t *testing.T, serverURL, token, city string) string {
 		t.Fatalf("Failed to parse response: %v", err)
 	}
 
-	idValue, ok := result["ID"]
+	idValue, ok := result["id"]
 	if !ok {
 		t.Fatalf("Response JSON missing 'id' field: %v", result)
 	}
@@ -115,7 +115,7 @@ func createReception(t *testing.T, serverURL, token, pvzID string) string {
 		t.Fatalf("Failed to parse response: %v", err)
 	}
 
-	receptionID := result["ID"].(string)
+	receptionID := result["id"].(string)
 	return receptionID
 }
 

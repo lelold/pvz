@@ -24,14 +24,12 @@ func TestCreatePVZ(t *testing.T) {
 		RegistrationDate: time.Now(),
 		City:             "Москва",
 	}
-	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`
 		INSERT INTO pvzs (id, registration_date, city)
 		VALUES ($1, $2, $3)
 	`)).
 		WithArgs(pvz.ID, pvz.RegistrationDate, pvz.City).
 		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
 	err := repo.Create(pvz)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -71,8 +69,6 @@ func TestGetReceptionsWithProducts(t *testing.T) {
 	receptionID := uuid.New()
 	now := time.Now()
 
-	mock.ExpectBegin()
-
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1")).
 		WithArgs(pvzID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "pvz_id", "status"}).
@@ -83,8 +79,6 @@ func TestGetReceptionsWithProducts(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "type", "reception_id"}).
 			AddRow(uuid.New(), time.Now(), "Товар 1", receptionID).
 			AddRow(uuid.New(), time.Now(), "Товар 2", receptionID))
-
-	mock.ExpectCommit()
 
 	result, err := repo.GetReceptionsWithProducts(pvzID)
 	assert.NoError(t, err)
