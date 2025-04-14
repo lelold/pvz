@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreatePVZ(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewPVZRepo(db)
@@ -24,20 +24,21 @@ func TestCreatePVZ(t *testing.T) {
 		RegistrationDate: time.Now(),
 		City:             "Москва",
 	}
-
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "pvzs"`)).
+	mock.ExpectExec(regexp.QuoteMeta(`
+		INSERT INTO pvzs (id, registration_date, city)
+		VALUES ($1, $2, $3)
+	`)).
 		WithArgs(pvz.ID, pvz.RegistrationDate, pvz.City).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
-
 	err := repo.Create(pvz)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestGetFilteredPVZs(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewPVZRepo(db)
@@ -48,8 +49,8 @@ func TestGetFilteredPVZs(t *testing.T) {
 	limit := 2
 
 	mock.ExpectQuery(regexp.QuoteMeta(
-		`SELECT * FROM "pvzs" WHERE registration_date >= $1 AND registration_date <= $2 LIMIT $3`)).
-		WithArgs(start, end, 2).
+		`SELECT id, registration_date, city FROM pvzs WHERE 1=1 AND registration_date >= $1 AND registration_date <= $2 ORDER BY registration_date DESC LIMIT $3 OFFSET $4`)).
+		WithArgs(start, end, 2, 0).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "registration_date", "city"}).
 			AddRow(uuid.New(), time.Now(), "Москва").
 			AddRow(uuid.New(), time.Now(), "Санкт-Петербург"))
@@ -61,26 +62,31 @@ func TestGetFilteredPVZs(t *testing.T) {
 }
 
 func TestGetReceptionsWithProducts(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewPVZRepo(db)
 
 	pvzID := uuid.New()
 	receptionID := uuid.New()
+	now := time.Now()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "receptions" WHERE pvz_id = $1`)).
+	mock.ExpectBegin()
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, date_time, pvz_id, status FROM receptions WHERE pvz_id = $1")).
 		WithArgs(pvzID).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "pvz_id", "status", "date_time"}).
-			AddRow(receptionID, pvzID, "in_progress", time.Now()))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "pvz_id", "status"}).
+			AddRow(receptionID, now, pvzID, "in_progress"))
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "products" WHERE reception_id = $1`)).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, date_time, type, reception_id FROM products WHERE reception_id = $1")).
 		WithArgs(receptionID).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "reception_id", "name", "quantity"}).
-			AddRow(uuid.New(), receptionID, "Товар 1", 3).
-			AddRow(uuid.New(), receptionID, "Товар 2", 1))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "type", "reception_id"}).
+			AddRow(uuid.New(), time.Now(), "Товар 1", receptionID).
+			AddRow(uuid.New(), time.Now(), "Товар 2", receptionID))
 
-	result, err := repo.GetReceptionsWithProducts(pvzID.String())
+	mock.ExpectCommit()
+
+	result, err := repo.GetReceptionsWithProducts(pvzID)
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
 	assert.Len(t, result[0].Products, 2)

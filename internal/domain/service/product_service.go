@@ -16,8 +16,8 @@ var allowedProducts = map[string]bool{
 }
 
 type ProductService interface {
-	CreateProduct(typeStr string, pvzId string) (*model.Product, error)
-	DeleteLastProduct(pvzID, userRole string) error
+	CreateProduct(typeStr string, pvzId uuid.UUID) (*model.Product, error)
+	DeleteLastProduct(pvzID uuid.UUID, userRole string) error
 }
 
 type productService struct {
@@ -32,7 +32,7 @@ func NewProductService(pRepo repository.ProductRepo, rRepo repository.ReceptionR
 	}
 }
 
-func (s *productService) CreateProduct(typeStr string, pvzId string) (*model.Product, error) {
+func (s *productService) CreateProduct(typeStr string, pvzId uuid.UUID) (*model.Product, error) {
 	if !allowedProducts[typeStr] {
 		return nil, errors.New("неверный товар")
 	}
@@ -54,7 +54,7 @@ func (s *productService) CreateProduct(typeStr string, pvzId string) (*model.Pro
 	return product, nil
 }
 
-func (s *productService) DeleteLastProduct(pvzID, userRole string) error {
+func (s *productService) DeleteLastProduct(pvzID uuid.UUID, userRole string) error {
 	if userRole != "employee" {
 		return errors.New("доступ запрещён")
 	}
@@ -62,11 +62,11 @@ func (s *productService) DeleteLastProduct(pvzID, userRole string) error {
 	if err != nil {
 		return errors.New("не удалось найти последнюю открытую приемку")
 	}
-	product, err := s.productRepo.GetLastAddedProduct(reception.ID.String())
+	product, err := s.productRepo.GetLastAddedProduct(reception.ID)
 	if err != nil {
 		return errors.New("не удалось найти последний добавленный товар")
 	}
-	err = s.productRepo.DeleteProductByID(product.ID.String())
+	err = s.productRepo.DeleteProductByID(product.ID)
 	if err != nil {
 		return errors.New("не удалось удалить товар")
 	}

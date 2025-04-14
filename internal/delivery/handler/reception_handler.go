@@ -7,6 +7,7 @@ import (
 	"pvz/internal/domain/model"
 	"pvz/internal/domain/service"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -31,7 +32,7 @@ func (h *ReceptionHandler) StartReception(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	reception, err := h.Service.StartReception(req.PVZID.String())
+	reception, err := h.Service.StartReception(req.PVZID)
 	if err != nil {
 		http.Error(w, `{"message":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -55,7 +56,7 @@ func (h *ReceptionHandler) CloseLastReception(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	reception, err := h.Service.CloseLastReception(pvzID)
+	reception, err := h.Service.CloseLastReception(uuid.MustParse(pvzID))
 	if err != nil {
 		http.Error(w, `{"message":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return

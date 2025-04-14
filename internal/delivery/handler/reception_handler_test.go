@@ -22,7 +22,7 @@ func TestStartReception_Success(t *testing.T) {
 
 	pvzID := uuid.New()
 	expectedReception := &model.Reception{ID: uuid.New(), PVZID: pvzID, Status: "in_progress"}
-	mockService.On("StartReception", pvzID.String()).Return(expectedReception, nil).Once()
+	mockService.On("StartReception", pvzID).Return(expectedReception, nil).Once()
 
 	body, _ := json.Marshal(model.Reception{PVZID: pvzID})
 	req := httptest.NewRequest(http.MethodPost, "/receptions", bytes.NewReader(body))
@@ -47,7 +47,7 @@ func TestCloseLastReception_Success(t *testing.T) {
 	pvzID := uuid.New().String()
 	expected := &model.Reception{ID: uuid.New(), PVZID: uuid.MustParse(pvzID), Status: "close"}
 
-	mockService.On("CloseLastReception", pvzID).Return(expected, nil).Once()
+	mockService.On("CloseLastReception", uuid.MustParse(pvzID)).Return(expected, nil).Once()
 
 	req := httptest.NewRequest(http.MethodPost, "/pvz/"+pvzID+"/close_last_reception", nil)
 	req = req.WithContext(middleware.SetRoleContext(req.Context(), "employee"))

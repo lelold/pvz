@@ -67,7 +67,7 @@ func TestGetFullPVZList(t *testing.T) {
 		mockRepo.On("GetFilteredPVZs", &start, &end, page, limit).
 			Return([]model.PVZ{pvz}, nil).Once()
 
-		mockRepo.On("GetReceptionsWithProducts", pvzID.String()).
+		mockRepo.On("GetReceptionsWithProducts", pvzID).
 			Return([]model.ReceptionWithProducts{reception}, nil).Once()
 
 		result, err := svc.GetFullPVZList(&start, &end, page, limit)

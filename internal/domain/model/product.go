@@ -7,8 +7,8 @@ import (
 )
 
 type Product struct {
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
-	DateTime    time.Time `gorm:"not null"`
-	Type        string    `gorm:"not null"`
-	ReceptionID uuid.UUID `gorm:"type:uuid;not null"`
+	ID          uuid.UUID `json:"id"`
+	DateTime    time.Time `json:"dateTime"`
+	Type        string    `json:"type"`
+	ReceptionID uuid.UUID `json:"receptionId"`
 }

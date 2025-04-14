@@ -13,6 +13,7 @@ import (
 	"pvz/internal/domain/model"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestCreateProduct(t *testing.T) {
 
 	reqBody := createProductRequest{
 		Type:  "электроника",
-		PVZID: "sid",
+		PVZID: uuid.New().String(),
 	}
 	reqBytes, err := json.Marshal(reqBody)
 	assert.NoError(t, err)
@@ -32,7 +33,7 @@ func TestCreateProduct(t *testing.T) {
 
 	req = req.WithContext(middleware.SetRoleContext(req.Context(), "employee"))
 
-	mockService.On("CreateProduct", reqBody.Type, reqBody.PVZID).Return(&model.Product{
+	mockService.On("CreateProduct", reqBody.Type, uuid.MustParse(reqBody.PVZID)).Return(&model.Product{
 		ID:          uuid.New(),
 		DateTime:    time.Now(),
 		Type:        reqBody.Type,
@@ -56,18 +57,18 @@ func TestDeleteLastProduct(t *testing.T) {
 	mockService := new(mocks.ProductService)
 	handler := NewProductHandler(mockService)
 
-	pvzID := ""
+	pvzID := uuid.New().String()
 	req := httptest.NewRequest(http.MethodPost, "/pvz/"+pvzID+"/delete_last_product", nil)
 	w := httptest.NewRecorder()
 
 	req = req.WithContext(middleware.SetRoleContext(req.Context(), "employee"))
+	req = mux.SetURLVars(req, map[string]string{"pvzId": pvzID})
 
-	mockService.On("DeleteLastProduct", pvzID, "employee").Return(nil).Once()
+	mockService.On("DeleteLastProduct", uuid.MustParse(pvzID), "employee").Return(nil).Once()
 
 	handler.DeleteLastProduct(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-
 	mockService.AssertExpectations(t)
 }
 

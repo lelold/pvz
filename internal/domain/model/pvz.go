@@ -7,7 +7,7 @@ import (
 )
 
 type PVZ struct {
-	ID               uuid.UUID `gorm:"type:uuid;primaryKey"`
-	RegistrationDate time.Time `gorm:"not null"`
-	City             string    `gorm:"not null"`
+	ID               uuid.UUID `json:"id"`
+	RegistrationDate time.Time `json:"registrationDate"`
+	City             string    `json:"city"`
 }

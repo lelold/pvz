@@ -6,6 +6,7 @@ import (
 	"pvz/internal/delivery/middleware"
 	"pvz/internal/domain/service"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -35,7 +36,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.CreateProduct(req.Type, req.PVZID)
+	product, err := h.service.CreateProduct(req.Type, uuid.MustParse(req.PVZID))
 	if err != nil {
 		http.Error(w, `{"message":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -54,7 +55,7 @@ func (h *ProductHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Reques
 	}
 
 	vars := mux.Vars(r)
-	pvzID := vars["pvzId"]
+	pvzID := uuid.MustParse(vars["pvzId"])
 
 	err = h.service.DeleteLastProduct(pvzID, role)
 	if err != nil {

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"database/sql"
 	"net/http"
 
 	"pvz/internal/delivery/handler"
@@ -9,10 +10,9 @@ import (
 	"pvz/internal/domain/service"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
 
-func Setup(db *gorm.DB) *mux.Router {
+func Setup(db *sql.DB) *mux.Router {
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	authHandler := &handler.AuthHandler{UserService: userService}

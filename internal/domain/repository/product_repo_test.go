@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateProduct(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewProductRepo(db)
@@ -27,9 +27,12 @@ func TestCreateProduct(t *testing.T) {
 	}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "products"`)).
+
+	mock.ExpectExec(regexp.QuoteMeta(`
+	INSERT INTO products (id, date_time, type, reception_id) VALUES ($1, $2, $3, $4);`)).
 		WithArgs(product.ID, product.DateTime, product.Type, product.ReceptionID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
+
 	mock.ExpectCommit()
 
 	err := repo.Create(product)
@@ -38,7 +41,7 @@ func TestCreateProduct(t *testing.T) {
 }
 
 func TestGetLastAddedProduct(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewProductRepo(db)
@@ -47,12 +50,18 @@ func TestGetLastAddedProduct(t *testing.T) {
 	productID := uuid.New()
 	now := time.Now()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "products" WHERE reception_id = $1 ORDER BY date_time DESC,"products"."id" LIMIT $2`)).
-		WithArgs(receptionID, 1).
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, date_time, type, reception_id
+		FROM products
+		WHERE reception_id = $1
+		ORDER BY date_time DESC
+		LIMIT 1;
+	`)).
+		WithArgs(receptionID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "type", "reception_id"}).
 			AddRow(productID, now, "электроника", receptionID))
 
-	product, err := repo.GetLastAddedProduct(receptionID.String())
+	product, err := repo.GetLastAddedProduct(receptionID)
 	assert.NoError(t, err)
 	assert.Equal(t, "электроника", product.Type)
 	assert.Equal(t, receptionID, product.ReceptionID)
@@ -60,7 +69,7 @@ func TestGetLastAddedProduct(t *testing.T) {
 }
 
 func TestDeleteProductByID(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 
 	repo := repository.NewProductRepo(db)
@@ -68,12 +77,14 @@ func TestDeleteProductByID(t *testing.T) {
 	productID := uuid.New()
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "products" WHERE id = $1`)).
+
+	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM products WHERE id = $1;`)).
 		WithArgs(productID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
+
 	mock.ExpectCommit()
 
-	err := repo.DeleteProductByID(productID.String())
+	err := repo.DeleteProductByID(productID)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

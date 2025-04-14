@@ -3,9 +3,9 @@ version: '3.9'
 services:
   avito-pvz-service:
     build: .
-    container_name: pvz_app
     ports:
       - "8080:8080"
+    command: ["/build"]
     environment:
       - DATABASE_PORT=${DB_PORT}
       - DATABASE_USER=${DB_USER}
@@ -13,6 +13,22 @@ services:
       - DATABASE_NAME=${DB_NAME}
       - DATABASE_HOST=${DB_HOST}
       - SERVER_PORT=${APP_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  migrate:
+    build: .
+    container_name: pvz_migrate
+    command: ["/build", "migrate"]
+    environment:
+      - DATABASE_PORT=${DB_PORT}
+      - DATABASE_USER=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - DATABASE_NAME=${DB_NAME}
+      - DATABASE_HOST=${DB_HOST}
     depends_on:
       db:
         condition: service_healthy

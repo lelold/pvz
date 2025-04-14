@@ -7,8 +7,8 @@ import (
 )
 
 type Reception struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	DateTime time.Time `gorm:"not null"`
-	PVZID    uuid.UUID `gorm:"type:uuid;not null"`
-	Status   string    `gorm:"not null"`
+	ID       uuid.UUID `json:"id"`
+	DateTime time.Time `json:"dateTime"`
+	PVZID    uuid.UUID `json:"pvzId"`
+	Status   string    `json:"status"`
 }

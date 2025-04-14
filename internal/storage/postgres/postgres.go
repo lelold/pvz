@@ -1,28 +1,32 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"pvz/internal/config"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
 
-func InitDB(conf *config.Config) *gorm.DB {
-	var DB *gorm.DB
-	conn_str := fmt.Sprintf(
-		"host=%s port=%s user=%s "+
-			"password=%s dbname=%s sslmode=disable",
+func InitDB(conf *config.Config) *sql.DB {
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		conf.DBHost, conf.DBPort, conf.DBUser, conf.DBPassword, conf.DBName,
 	)
 
-	conn, err := gorm.Open(postgres.Open(conn_str), &gorm.Config{})
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("Failed to connect DB: ", err)
+		log.Fatalf("Failed to open DB connection: %v", err)
 	}
-	DB = conn
 
-	log.Println("DB succesfully connected")
-	return DB
+	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(0)
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to ping DB: %v", err)
+	}
+	log.Println("DB successfully connected")
+	return db
 }

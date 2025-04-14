@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreateReception(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 	repo := repository.NewReceptionRepo(db)
 	pvzID := uuid.New()
@@ -25,31 +25,41 @@ func TestCreateReception(t *testing.T) {
 	}
 	reception.ID = uuid.New()
 	reception.DateTime = time.Now()
+
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "receptions"`)).
+
+	mock.ExpectExec(regexp.QuoteMeta(`
+		INSERT INTO receptions (id, date_time, pvz_id, status)
+		VALUES ($1, $2, $3, $4)
+	`)).
 		WithArgs(reception.ID, reception.DateTime, reception.PVZID, reception.Status).
 		WillReturnResult(sqlmock.NewResult(1, 1))
+
 	mock.ExpectCommit()
+
 	err := repo.CreateReception(reception)
 	assert.NoError(t, err)
 }
 
 func TestHasOpenReception(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 	repo := repository.NewReceptionRepo(db)
 	pvzID := uuid.New()
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "receptions"`)).
-		WithArgs(pvzID, "in_progress").
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(*) FROM receptions 
+		WHERE pvz_id = $1 AND status = 'in_progress'
+	`)).
+		WithArgs(pvzID).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-	hasOpen, err := repo.HasOpenReception(pvzID.String())
+	hasOpen, err := repo.HasOpenReception(pvzID)
 	assert.NoError(t, err)
 	assert.True(t, hasOpen)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestFindLastOpenReceptionByPVZ(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 	repo := repository.NewReceptionRepo(db)
 	pvzID := uuid.New()
@@ -59,11 +69,17 @@ func TestFindLastOpenReceptionByPVZ(t *testing.T) {
 		PVZID:    pvzID,
 		Status:   "in_progress",
 	}
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "receptions" WHERE pvz_id = $1 AND status = $2 ORDER BY date_time DESC,"receptions"."id" LIMIT $3`)).
-		WithArgs(pvzID, "in_progress", 1).
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, date_time, pvz_id, status 
+		FROM receptions 
+		WHERE pvz_id = $1 AND status = 'in_progress'
+		ORDER BY date_time DESC
+		LIMIT 1
+	`)).
+		WithArgs(pvzID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "pvz_id", "status"}).
 			AddRow(expectedReception.ID, expectedReception.DateTime, expectedReception.PVZID, expectedReception.Status))
-	reception, err := repo.FindLastOpenReceptionByPVZ(pvzID.String())
+	reception, err := repo.FindLastOpenReceptionByPVZ(pvzID)
 	require.NoError(t, err)
 	require.NotNil(t, reception)
 	assert.Equal(t, expectedReception.PVZID, reception.PVZID)
@@ -73,25 +89,31 @@ func TestFindLastOpenReceptionByPVZ(t *testing.T) {
 }
 
 func TestFindLastOpenReceptionByPVZ_NotFound(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 	repo := repository.NewReceptionRepo(db)
 
 	pvzID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "receptions" WHERE pvz_id = $1 AND status = $2 ORDER BY date_time DESC,"receptions"."id" LIMIT $3`)).
-		WithArgs(pvzID, "in_progress", 1).
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, date_time, pvz_id, status 
+		FROM receptions 
+		WHERE pvz_id = $1 AND status = 'in_progress'
+		ORDER BY date_time DESC
+		LIMIT 1
+	`)).
+		WithArgs(pvzID).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	reception, err := repo.FindLastOpenReceptionByPVZ(pvzID.String())
+	reception, err := repo.FindLastOpenReceptionByPVZ(pvzID)
 	assert.Error(t, err)
 	assert.Nil(t, reception)
-	assert.EqualError(t, err, "открытая приемка не найдена")
+	assert.EqualError(t, err, "record not found")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestCloseReception(t *testing.T) {
-	db, mock, cleanup := setupTestDB(t)
+	db, mock, cleanup := SetupTestDB(t)
 	defer cleanup()
 	repo := repository.NewReceptionRepo(db)
 	pvzID := uuid.New()
@@ -101,12 +123,16 @@ func TestCloseReception(t *testing.T) {
 		PVZID:  pvzID,
 		Status: "in_progress",
 	}
+
 	mock.ExpectBegin()
+
 	mock.ExpectExec(regexp.QuoteMeta(
-		`UPDATE "receptions" SET "date_time"=$1,"pvz_id"=$2,"status"=$3 WHERE "id" = $4`)).
-		WithArgs(reception.DateTime, reception.PVZID, "close", reception.ID).
+		`UPDATE receptions SET status = 'close' WHERE id = $1`)).
+		WithArgs(reception.ID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
+
 	mock.ExpectCommit()
+
 	err := repo.CloseReception(reception)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())

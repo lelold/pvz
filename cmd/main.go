@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"pvz/internal/config"
 	"pvz/internal/storage/postgres"
@@ -13,7 +14,11 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	db := postgres.InitDB(&cfg)
-	postgres.Migrate(db)
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		postgres.Migrate(db)
+		log.Println("Migration completed")
+		return
+	}
 
 	r := routes.Setup(db)
 

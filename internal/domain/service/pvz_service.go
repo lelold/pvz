@@ -53,7 +53,7 @@ func (s *pvzService) GetFullPVZList(start, end *time.Time, page, limit int) ([]m
 
 	var fullList []model.PVZFull
 	for _, pvz := range pvzs {
-		receptions, err := s.repo.GetReceptionsWithProducts(pvz.ID.String())
+		receptions, err := s.repo.GetReceptionsWithProducts(pvz.ID)
 		if err != nil {
 			return nil, err
 		}

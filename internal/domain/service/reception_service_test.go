@@ -17,7 +17,7 @@ func TestStartReception(t *testing.T) {
 	mockRepo := new(mocks.ReceptionRepo)
 	svc := service.NewReceptionService(mockRepo)
 
-	pvzID := uuid.New().String()
+	pvzID := uuid.New()
 
 	t.Run("успешный старт приёмки", func(t *testing.T) {
 		mockRepo.On("HasOpenReception", pvzID).Return(false, nil).Once()
@@ -57,10 +57,10 @@ func TestCloseLastReception(t *testing.T) {
 	mockRepo := new(mocks.ReceptionRepo)
 	svc := service.NewReceptionService(mockRepo)
 
-	pvzID := uuid.New().String()
+	pvzID := uuid.New()
 	reception := &model.Reception{
 		ID:       uuid.New(),
-		PVZID:    uuid.MustParse(pvzID),
+		PVZID:    pvzID,
 		DateTime: time.Now(),
 		Status:   "in_progress",
 	}
